@@ -1,4 +1,7 @@
 {
+    "name": "@fullstacked/codemirror-view",
+    "version": "0.0.0",
+    "main": "codeMirrorView.ts",
     "dependencies": {
         "@codemirror/lang-css": "^6.3.1",
         "@codemirror/lang-go": "^6.0.1",
