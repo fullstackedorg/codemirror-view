@@ -3,8 +3,6 @@ import { keymap } from "@codemirror/view";
 import { Compartment, EditorSelection, Extension } from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import { indentUnit } from "@codemirror/language";
-import { oneDark } from "@codemirror/theme-one-dark";
-import { coloredBrackets } from "./brackets";
 import { languageHighlightExtension, SupportedLanguage } from "./languages";
 
 const defaultTabWidth = 4;
@@ -38,8 +36,6 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         parent: element,
         doc: opts?.contents || "",
         extensions: [
-            oneDark,
-            coloredBrackets,
             basicSetup,
             keymap.of([indentWithTab]),
             indentUnit.of(new Array(tabWidth + 1).join(" ")),
@@ -115,17 +111,23 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         setLanguage(opts.language);
     }
 
-    const lockEditing = EditorView.editable.of(false);
+    const lockEditingExtensions = [
+        EditorView.editable.of(false),
+        EditorView.baseTheme({
+            ".cm-activeLine": { backgroundColor: "transparent" },
+            ".cm-activeLineGutter": { backgroundColor: "transparent" }
+        }),
+    ];
 
     return {
         element,
         editorView,
         editing: {
             lock() {
-                extensions.add(lockEditing);
+                extensions.add(lockEditingExtensions);
             },
             unlock() {
-                extensions.remove(lockEditing);
+                extensions.remove(lockEditingExtensions);
             },
         },
         replaceContents(newContents: string) {
