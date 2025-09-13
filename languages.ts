@@ -23,6 +23,19 @@ export type SupportedLanguage =
     | "go"
     | "liquid";
 
+export function languageToFileExtension(language: SupportedLanguage){
+    switch(language) {
+        case "javascript":
+            return "js";
+        case "typescript":
+            return "ts";
+        case "markdown":
+            return "md";
+        default:
+            return language;
+    }
+}
+
 export async function languageHighlightExtension(
     lang: SupportedLanguage,
 ): Promise<Extension> {

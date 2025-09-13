@@ -11,7 +11,8 @@
         "@codemirror/lang-sass": "^6.0.2",
         "@codemirror/state": "^6.5.2",
         "@codemirror/view": "^6.38.1",
-        "codemirror": "6.0.2"
+        "codemirror": "6.0.2",
+        "prettier": "^3.6.2"
     },
     "devDependencies": {
         "@codemirror/theme-one-dark": "^6.1.3"

@@ -1,11 +1,12 @@
 import { EditorView, basicSetup } from "codemirror";
-import { keymap } from "@codemirror/view";
+import { KeyBinding, keymap } from "@codemirror/view";
 import { Compartment, EditorSelection, Extension } from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import { indentUnit } from "@codemirror/language";
 import { languageHighlightExtension, SupportedLanguage } from "./languages";
+import { formatContents } from "./prettier";
 
-const defaultTabWidth = 4;
+export const defaultTabWidth = 4;
 
 type CmViewOpts = {
     contents: string;
@@ -15,6 +16,8 @@ type CmViewOpts = {
 };
 
 export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
+    let language: SupportedLanguage = opts?.language;
+    
     const element = document.createElement("div");
     element.classList.add("cm-container");
 
@@ -32,12 +35,23 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
 
     const tabWidth = opts?.tabWidth || defaultTabWidth;
 
+    const formatKeyBinding: KeyBinding = {
+        key: "Ctrl-s",
+        mac: "Cmd-s",
+        run: () => {
+            formatContents(language, editorView.state.doc.toString()).then(
+                replaceContents,
+            );
+            return true;
+        },
+    };
+
     const editorView = new EditorView({
         parent: element,
         doc: opts?.contents || "",
         extensions: [
             basicSetup,
-            keymap.of([indentWithTab]),
+            keymap.of([indentWithTab, formatKeyBinding]),
             indentUnit.of(new Array(tabWidth + 1).join(" ")),
             compartment.of([...loadedExtensions]),
             lintersCompartment.of([...loadedLinters]),
@@ -99,6 +113,8 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
 
     let languageExtension: Extension = null;
     const setLanguage = async (lang: SupportedLanguage) => {
+        language = lang;
+        
         if (languageExtension) {
             extensions.remove(languageExtension);
         }
@@ -115,9 +131,40 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         EditorView.editable.of(false),
         EditorView.baseTheme({
             ".cm-activeLine": { backgroundColor: "transparent" },
-            ".cm-activeLineGutter": { backgroundColor: "transparent" }
+            ".cm-activeLineGutter": { backgroundColor: "transparent" },
         }),
     ];
+
+    const replaceContents = (newContents: string) => {
+        const currentContents = editorView.state.doc.toString();
+        if (newContents === currentContents) return;
+
+        let selection = editorView.state.selection;
+
+        let range = selection.ranges?.at(0);
+        if (range?.from > newContents.length) {
+            selection = selection.replaceRange(
+                EditorSelection.range(newContents.length, range.to),
+                0,
+            );
+            range = selection.ranges?.at(0);
+        }
+        if (range?.to > newContents.length) {
+            selection = selection.replaceRange(
+                EditorSelection.range(range.from, newContents.length),
+                0,
+            );
+        }
+
+        editorView.dispatch({
+            changes: {
+                from: 0,
+                to: currentContents.length,
+                insert: newContents,
+            },
+            selection,
+        });
+    };
 
     return {
         element,
@@ -130,36 +177,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
                 extensions.remove(lockEditingExtensions);
             },
         },
-        replaceContents(newContents: string) {
-            const currentContents = editorView.state.doc.toString();
-            if (newContents === currentContents) return;
-
-            let selection = editorView.state.selection;
-
-            let range = selection.ranges?.at(0);
-            if (range?.from > newContents.length) {
-                selection = selection.replaceRange(
-                    EditorSelection.range(newContents.length, range.to),
-                    0,
-                );
-                range = selection.ranges?.at(0);
-            }
-            if (range?.to > newContents.length) {
-                selection = selection.replaceRange(
-                    EditorSelection.range(range.from, newContents.length),
-                    0,
-                );
-            }
-
-            editorView.dispatch({
-                changes: {
-                    from: 0,
-                    to: currentContents.length,
-                    insert: newContents,
-                },
-                selection,
-            });
-        },
+        replaceContents,
         extensions,
         linters,
         remove() {

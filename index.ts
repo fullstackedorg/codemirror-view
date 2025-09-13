@@ -14,8 +14,8 @@ console.log(\`My name is \${name} and I'm \${age} years old.\`);
 
 // Logging objects
 let person = {
-    name: "Jane",
-    age: 25,
+name: "Jane",
+age: 25,
 };
 
 console.log(person);`,
