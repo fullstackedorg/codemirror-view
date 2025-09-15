@@ -183,7 +183,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         const scrollToPos = () =>
             new Promise((res) => {
                 const { top } = editorView.lineBlockAt(pos);
-                this.cmViewContainer.parentElement.scrollTo({ top });
+                editorView.dom.parentElement.scrollTo({ top });
                 setTimeout(res);
             });
 
@@ -194,9 +194,9 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         do {
             await scrollToPos();
             const height =
-                this.cmViewContainer.parentElement.getBoundingClientRect()
+                editorView.dom.parentElement.getBoundingClientRect()
                     .height * 0.8;
-            const scrollTop = this.cmViewContainer.parentElement.scrollTop;
+            const scrollTop = editorView.dom.parentElement.scrollTop;
             const visibleLines = [
                 editorView.lineBlockAtHeight(scrollTop),
                 editorView.lineBlockAtHeight(height + scrollTop),
