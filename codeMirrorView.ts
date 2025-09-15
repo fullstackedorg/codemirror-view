@@ -17,7 +17,7 @@ type CmViewOpts = {
 
 export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
     let language: SupportedLanguage = opts?.language;
-    
+
     const element = document.createElement("div");
     element.classList.add("cm-container");
 
@@ -114,7 +114,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
     let languageExtension: Extension = null;
     const setLanguage = async (lang: SupportedLanguage) => {
         language = lang;
-        
+
         if (languageExtension) {
             extensions.remove(languageExtension);
         }
@@ -166,6 +166,19 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         });
     };
 
+    const getPos = (lineOrPos: number, column?: number) => {
+        return typeof column === "number"
+            ? editorView.state.doc.line(lineOrPos)?.from + column
+            : lineOrPos;
+    };
+
+    const goTo = (lineOrPos: number, column?: number) => {
+        const pos = getPos(lineOrPos, column);
+        editorView.dispatch({
+            selection: { anchor: pos, head: pos },
+        });
+    };
+
     return {
         element,
         editorView,
@@ -180,6 +193,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         replaceContents,
         extensions,
         linters,
+        goTo,
         remove() {
             element.remove();
             editorView.destroy();
