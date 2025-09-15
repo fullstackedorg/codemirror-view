@@ -177,41 +177,8 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         editorView.dispatch({
             selection: { anchor: pos, head: pos },
         });
-
-        const aimedLine = editorView.state.doc.lineAt(pos).number;
-
-        const scrollToPos = () =>
-            new Promise((res) => {
-                const { top } = editorView.lineBlockAt(pos);
-                editorView.dom.parentElement.scrollTo({ top });
-                setTimeout(res);
-            });
-
-        let firstVisibleLine = -1,
-            lastVisibleLine = -1,
-            tries = 3;
-
-        do {
-            await scrollToPos();
-            const height =
-                editorView.dom.parentElement.getBoundingClientRect()
-                    .height * 0.8;
-            const scrollTop = editorView.dom.parentElement.scrollTop;
-            const visibleLines = [
-                editorView.lineBlockAtHeight(scrollTop),
-                editorView.lineBlockAtHeight(height + scrollTop),
-            ];
-            firstVisibleLine = editorView.state.doc.lineAt(
-                visibleLines.at(0).from,
-            ).number;
-            lastVisibleLine = editorView.state.doc.lineAt(
-                visibleLines.at(-1).from,
-            ).number;
-            tries--;
-        } while (
-            tries &&
-            (aimedLine < firstVisibleLine || aimedLine > lastVisibleLine)
-        );
+        const { top } = editorView.lineBlockAt(pos);
+        editorView.scrollDOM.scrollTo({ top });
     };
 
     return {
