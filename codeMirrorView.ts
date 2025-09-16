@@ -166,7 +166,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         });
     };
 
-    const goTo = async (pos: number | {line: number, character: number}) => {
+    const goTo = (pos: number | {line: number, character: number}) => {
         const position = typeof pos === "number"
             ? pos
             : editorView.state.doc.line(pos.line)?.from + pos.character;
