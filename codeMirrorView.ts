@@ -166,18 +166,14 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         });
     };
 
-    const getPos = (lineOrPos: number, column?: number) => {
-        return typeof column === "number"
-            ? editorView.state.doc.line(lineOrPos)?.from + column
-            : lineOrPos;
-    };
-
-    const goTo = async (lineOrPos: number, column?: number) => {
-        const pos = getPos(lineOrPos, column);
+    const goTo = async (pos: number | {line: number, character: number}) => {
+        const position = typeof pos === "number"
+            ? pos
+            : editorView.state.doc.line(pos.line)?.from + pos.character;
         editorView.dispatch({
-            selection: { anchor: pos, head: pos },
+            selection: { anchor: position, head: position },
         });
-        const { top } = editorView.lineBlockAt(pos);
+        const { top } = editorView.lineBlockAt(position);
         editorView.scrollDOM.scrollTo({ top });
     };
 
