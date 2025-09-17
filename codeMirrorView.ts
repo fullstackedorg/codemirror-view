@@ -46,6 +46,21 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         },
     };
 
+    let debouncer: ReturnType<typeof setTimeout> = null;
+    const updateListeners = new Set<(contents: string) => void>();
+    const onUpdateExtension = EditorView.updateListener.of(() => {
+        if (isEditingLocked) return;
+
+        if (debouncer) {
+            clearTimeout(debouncer);
+        }
+
+        debouncer = setTimeout(() => {
+            debouncer = null;
+            updateListeners.forEach((cb) => cb(editorView.state.doc.toString()));
+        }, 500);
+    });
+
     const editorView = new EditorView({
         parent: element,
         doc: opts?.contents || "",
@@ -53,6 +68,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
             basicSetup,
             keymap.of([indentWithTab, formatKeyBinding]),
             indentUnit.of(new Array(tabWidth + 1).join(" ")),
+            onUpdateExtension,
             compartment.of([...loadedExtensions]),
             lintersCompartment.of([...loadedLinters]),
         ],
@@ -66,15 +82,26 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
     const extensions = {
         add(extension: Extension) {
             if (!extension) return;
+
+            if (extension === lockEditingExtensions) {
+                isEditingLocked = true;
+            }
+
             loadedExtensions.add(extension);
             reloadExtensions();
         },
         remove(extension: Extension) {
             if (!extension) return;
+
+            if (extension === lockEditingExtensions) {
+                isEditingLocked = false;
+            }
+
             loadedExtensions.delete(extension);
             reloadExtensions();
         },
         removeAll() {
+            isEditingLocked = false;
             loadedExtensions.clear();
             reloadExtensions();
         },
@@ -127,6 +154,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         setLanguage(opts.language);
     }
 
+    let isEditingLocked = false;
     const lockEditingExtensions = [
         EditorView.editable.of(false),
         EditorView.baseTheme({
@@ -166,10 +194,11 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         });
     };
 
-    const goTo = (pos: number | {line: number, character: number}) => {
-        const position = typeof pos === "number"
-            ? pos
-            : editorView.state.doc.line(pos.line)?.from + pos.character;
+    const goTo = (pos: number | { line: number; character: number }) => {
+        const position =
+            typeof pos === "number"
+                ? pos
+                : editorView.state.doc.line(pos.line)?.from + pos.character;
         editorView.dispatch({
             selection: { anchor: position, head: position },
         });
@@ -200,5 +229,11 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
             return editorView.state.doc.toString();
         },
         setLanguage,
+        addUpdateListener(callback: (contents: string) => void) {
+            updateListeners.add(callback);
+        },
+        removeUpdateListener(callback: (contents: string) => void) {
+            updateListeners.delete(callback);
+        }
     };
 }
