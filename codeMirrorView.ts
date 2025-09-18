@@ -1,6 +1,6 @@
 import { EditorView, basicSetup } from "codemirror";
 import { KeyBinding, keymap } from "@codemirror/view";
-import { Compartment, Extension } from "@codemirror/state";
+import { Compartment, Extension,EditorSelection } from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import { indentUnit } from "@codemirror/language";
 import { languageHighlightExtension, SupportedLanguage } from "./languages";
@@ -57,7 +57,9 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
 
         debouncer = setTimeout(() => {
             debouncer = null;
-            updateListeners.forEach((cb) => cb(editorView.state.doc.toString()));
+            updateListeners.forEach((cb) =>
+                cb(editorView.state.doc.toString()),
+            );
         }, 250);
     });
 
@@ -167,17 +169,34 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         const currentContents = editorView.state.doc.toString();
         if (newContents === currentContents) return;
 
-        let cursor = editorView.state.selection.main.head;
+        const top = editorView.scrollDOM.scrollTop;
+
+        let selection = editorView.state.selection;
+        let range = selection.ranges?.at(0);
+        if (range?.from > newContents.length) {
+            selection = selection.replaceRange(
+                EditorSelection.range(newContents.length, range.to),
+                0,
+            );
+            range = selection.ranges?.at(0);
+        }
+        if (range?.to > newContents.length) {
+            selection = selection.replaceRange(
+                EditorSelection.range(range.from, newContents.length),
+                0,
+            );
+        }
 
         editorView.dispatch({
             changes: {
                 from: 0,
                 to: currentContents.length,
                 insert: newContents,
-            }
+            },
+            selection
         });
 
-        goTo(cursor);
+        editorView.scrollDOM.scrollTo({ top });
     };
 
     const goTo = (pos: number | { line: number; character: number }) => {
@@ -220,6 +239,6 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         },
         removeUpdateListener(callback: (contents: string) => void) {
             updateListeners.delete(callback);
-        }
+        },
     };
 }
