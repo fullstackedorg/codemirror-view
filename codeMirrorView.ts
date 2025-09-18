@@ -1,6 +1,6 @@
 import { EditorView, basicSetup } from "codemirror";
 import { KeyBinding, keymap } from "@codemirror/view";
-import { Compartment, Extension,EditorSelection } from "@codemirror/state";
+import { Compartment, Extension, EditorSelection } from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import { indentUnit } from "@codemirror/language";
 import { languageHighlightExtension, SupportedLanguage } from "./languages";
@@ -193,10 +193,9 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
                 to: currentContents.length,
                 insert: newContents,
             },
-            selection
+            selection,
+            scrollIntoView: true,
         });
-
-        editorView.scrollDOM.scrollTo({ top });
     };
 
     const goTo = (pos: number | { line: number; character: number }) => {
