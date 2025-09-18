@@ -35,13 +35,16 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
 
     const tabWidth = opts?.tabWidth || defaultTabWidth;
 
+    const format = () => {
+        formatContents(language, editorView.state.doc.toString()).then(
+            replaceContents,
+        );
+    };
     const formatKeyBinding: KeyBinding = {
         key: "Ctrl-s",
         mac: "Cmd-s",
         run: () => {
-            formatContents(language, editorView.state.doc.toString()).then(
-                replaceContents,
-            );
+            format();
             return true;
         },
     };
@@ -225,6 +228,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         extensions,
         linters,
         goTo,
+        format,
         remove() {
             element.remove();
             editorView.destroy();
