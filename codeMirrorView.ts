@@ -58,7 +58,7 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         debouncer = setTimeout(() => {
             debouncer = null;
             updateListeners.forEach((cb) => cb(editorView.state.doc.toString()));
-        }, 500);
+        }, 250);
     });
 
     const editorView = new EditorView({
