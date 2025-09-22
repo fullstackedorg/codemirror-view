@@ -9,6 +9,8 @@ export type SupportedLanguage =
     | "typescript"
     | "ts"
     | "tsx"
+    | "mts"
+    | "cts"
     | "markdown"
     | "md"
     | "python"
@@ -23,8 +25,8 @@ export type SupportedLanguage =
     | "go"
     | "liquid";
 
-export function languageToFileExtension(language: SupportedLanguage){
-    switch(language) {
+export function languageToFileExtension(language: SupportedLanguage) {
+    switch (language) {
         case "javascript":
             return "js";
         case "typescript":
@@ -48,6 +50,8 @@ export async function languageHighlightExtension(
         case "mjs":
         case "ts":
         case "tsx":
+        case "mts":
+        case "cts":
             const { javascript } = await import("@codemirror/lang-javascript");
             return javascript({
                 typescript: lang.startsWith("t"),
