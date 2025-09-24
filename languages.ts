@@ -1,4 +1,5 @@
 import { Extension } from "@codemirror/state";
+import { EditorView } from "codemirror";
 
 export type SupportedLanguage =
     | "javascript"
@@ -75,8 +76,9 @@ export async function languageHighlightExtension(
             const { go } = await import("@codemirror/lang-go");
             return go();
         case "markdown":
+        case "md":
             const { markdown } = await import("@codemirror/lang-markdown");
-            return markdown();
+            return [markdown(), EditorView.lineWrapping];
         case "python":
             const { python } = await import("@codemirror/lang-python");
             return python();
