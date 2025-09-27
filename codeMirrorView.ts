@@ -209,8 +209,10 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         editorView.dispatch({
             selection: { anchor: position, head: position },
         });
-        const { top } = editorView.lineBlockAt(position);
-        editorView.scrollDOM.scrollTo({ top });
+        setTimeout(() => {
+            const { top } = editorView.lineBlockAt(position);
+            editorView.scrollDOM.scrollTo({ top });
+        });
     };
 
     return {
