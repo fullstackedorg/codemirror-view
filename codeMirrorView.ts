@@ -79,6 +79,9 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         ],
     });
 
+    editorView.dom.style.height = "100%";
+    editorView.dom.style.width = "100%";
+
     const reloadExtensions = () => {
         const effects = compartment.reconfigure([...loadedExtensions]);
         editorView.dispatch({ effects });
@@ -201,6 +204,23 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
         });
     };
 
+    const getVisibleLines = () => {
+        const height = editorView.dom.getBoundingClientRect().height;
+        const scrollTop = editorView.scrollDOM.scrollTop;
+        const visibleLines = [
+            editorView.lineBlockAtHeight(scrollTop),
+            editorView.lineBlockAtHeight(height + scrollTop),
+        ];
+        const firstVisibleLine = editorView.state.doc.lineAt(
+            visibleLines.at(0).from,
+        ).number;
+        const lastVisibleLine = editorView.state.doc.lineAt(
+            visibleLines.at(-1).from,
+        ).number;
+
+        return [firstVisibleLine, lastVisibleLine];
+    };
+
     const goTo = (pos: number | { line: number; character: number }) => {
         const position =
             typeof pos === "number"
@@ -210,6 +230,12 @@ export function createCodeMirrorView(opts?: Partial<CmViewOpts>) {
             selection: { anchor: position, head: position },
         });
         setTimeout(() => {
+            const line = editorView.state.doc.lineAt(position).number;
+            const [firstLine, lastLine] = getVisibleLines();
+            if (line > firstLine && line < lastLine) {
+                return;
+            }
+
             const { top } = editorView.lineBlockAt(position);
             editorView.scrollDOM.scrollTo({ top });
         });

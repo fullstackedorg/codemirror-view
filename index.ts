@@ -12,10 +12,15 @@ let name = "John";
 let age = 30;
 console.log(\`My name is \${name} and I'm \${age} years old.\`);
 
+
+
+
 // Logging objects
 let person = {
+
 name: "Jane",
 age: 25,
+
 };
 
 console.log(person);`,
@@ -24,3 +29,5 @@ console.log(person);`,
 });
 
 document.body.append(cmView.element);
+
+globalThis.cmGoto = (line: number) => cmView.goTo({ line, character: 0 });
