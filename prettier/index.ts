@@ -22,7 +22,7 @@ const plugins = [
 export function formatContents(language: SupportedLanguage, text: string) {
     let ext = languageToFileExtension(language);
 
-    if(ext === "svg") {
+    if (ext === "svg") {
         ext = "html";
     }
 
@@ -30,5 +30,6 @@ export function formatContents(language: SupportedLanguage, text: string) {
         filepath: `index.${ext}`,
         plugins,
         tabWidth,
+        trailingComma: "none",
     });
 }
